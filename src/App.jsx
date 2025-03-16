@@ -25,6 +25,7 @@ import Feed from "./pages/Feed";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Networks from "./pages/Networks";
+import Premium from "./pages/Premium";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
 import Signup from "./pages/Signup";
@@ -37,27 +38,26 @@ import { addUser, removeUser } from "./utils/userSlice";
 const App = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true); // Track loading state
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(
+        import.meta.env.VITE_BackendURL + "/profile/view",
+        { withCredentials: true },
+      );
+
+      if (res.data.success) {
+        dispatch(addUser(res.data.user));
+      } else {
+        dispatch(removeUser(null));
+      }
+    } catch (err) {
+      dispatch(removeUser(null));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(
-          import.meta.env.VITE_BackendURL + "/profile/view",
-          { withCredentials: true },
-        );
-
-        if (res.data.success) {
-          dispatch(addUser(res.data.user));
-        } else {
-          dispatch(removeUser(null));
-        }
-      } catch (err) {
-        dispatch(removeUser(null));
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUser();
   }, [dispatch]);
 
@@ -95,6 +95,7 @@ const App = () => {
               <Route path="/search" element={<Search />} />
               <Route path="/team" element={<Team />} />
               <Route path="/contact-form" element={<ContactForm />} />
+              <Route path="/premium" element={<Premium />} />
             </Route>
             <Route element={<AdminRoute loading={loading} />}>
               <Route path="/admin" element={<Dashboard />}></Route>
