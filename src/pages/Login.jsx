@@ -3,7 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { FaUserCheck } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { login } from "../utils/authSlice";
 import { clearConnectionRequests } from "../utils/connectionsSlice";
@@ -27,23 +27,22 @@ const Login = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/feed";
 
   const validateInputs = () => {
     const newErrors = { email: "", username: "", password: "" };
 
-    // Email validation
     if (!isUsername && userId.trim() === "") {
       newErrors.email = "Email is required.";
     } else if (!isUsername && !/^\S+@\S+\.\S+$/.test(userId)) {
       newErrors.email = "Enter a valid email address.";
     }
 
-    // Username validation
     if (isUsername && userId.trim().length < 3) {
       newErrors.username = "Username must be more than 3 characters long.";
     }
 
-    // Password validation
     if (password.trim().length <= 0) {
       newErrors.password = "Enter A Password.";
     }
@@ -53,7 +52,6 @@ const Login = () => {
     return !Object.values(newErrors).some((error) => error !== "");
   };
 
-  // to fetch login api
   const handleLogin = async () => {
     if (!validateInputs()) return;
 
@@ -67,6 +65,7 @@ const Login = () => {
         data,
         { withCredentials: true },
       );
+
       if (res.data.success === false) {
         toast.error(res.data.message || "An error occurred");
       } else {
@@ -80,17 +79,14 @@ const Login = () => {
         dispatch(clearRejectedRequests());
         dispatch(login());
 
-        return navigate("/feed");
+        return navigate(from, { replace: true });
       }
     } catch (err) {
       if (err.response) {
-        // The request was made, and the server responded with a status code that falls out of the range of 2xx
         toast.error(err.response.data.error || "Something went wrong!");
       } else if (err.request) {
-        // The request was made, but no response was received
         toast.error("No response from the server. Please try again.");
       } else {
-        // Something happened in setting up the request that triggered an Error
         toast.error("An unexpected error occurred.");
       }
       console.error(err.message);
@@ -222,4 +218,5 @@ const Login = () => {
     </div>
   );
 };
+
 export default Login;
